@@ -1,0 +1,12 @@
+.game-node {
+    border: black 1px solid;
+    position: relative;
+    display: block;
+}
+
+#game-board {
+    border: black 1px dashed;
+    width: 800px;
+    height: 1600px;
+    margin: 50px;
+}
