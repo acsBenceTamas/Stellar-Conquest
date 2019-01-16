@@ -98,15 +98,14 @@ function connectPoints( point1, point2, color, thickness) {
     document.body.innerHTML += htmlLine;
 }
 
-function createNode( posX, posY, width, height, parent, id, dragula=null ) {
+function createNode( posX, posY, width, height, parent, id) {
     let node = document.createElement('div');
     node.classList.add('game-node');
     node.id = id;
     node.style = `left: ${posX-width/2}px; top: ${posY-height}px; height:${height}px; width:${width}px;`;
+    node.innerHTML = `<div class="node-drop-zone"><p>Drop Zone</p></div>`;
     parent.appendChild(node);
-    if (dragula) {
-        dragula.containers.push(node)
-    }
+    nodesDragula.containers.push(node);
 }
 
 function makeNodeConnection( node1, node2 ) {
@@ -114,16 +113,58 @@ function makeNodeConnection( node1, node2 ) {
     connectPoints( connectionPoints.point1, connectionPoints.point2, "red", 2)
 }
 
-let nodesDragula = dragula();
+function createShip( nodeId, shipConfiguration, shipId) {
+    let ship = document.createElement('div');
+    ship.classList.add('game-ship');
+    ship.id = shipId;
+    ship.style = `border: red 1px solid`;
+    ship.innerHTML = `<img src="${emblemsFolder + shipConfiguration.image}" />${shipConfiguration.name}`;
+    let node = document.getElementById(nodeId);
+    let dropZone = Array.from(node.childNodes).filter(node => node.classList.contains('node-drop-zone'))[0];
+    dropZone.appendChild(ship);
+    removeDropZoneText(dropZone);
+}
+
+function nodesDragulaDrop(el, target, source, sibling) {
+    addDropZoneText(source);
+    removeDropZoneText(target);
+}
+
+function addDropZoneText(dropZone) {
+    if (Array.from(dropZone.childNodes).length == 0) {
+        dropZone.innerHTML += `<p>Drop Zone</p>`;
+    }
+}
+
+function removeDropZoneText(dropZone) {
+    let dropZoneTextList = Array.from(dropZone.childNodes).filter(ship => ship.tagName.toLowerCase() == 'p');
+    if (dropZoneTextList.length > 0){
+        dropZoneTextList[0].remove();
+    }
+}
+
+
+const emblemsFolder = document.getElementById('flask-info').dataset.emblemsFolder;
+let nodesDragula = dragula(
+    {
+        isContainer: el => el.classList.contains('node-drop-zone'),
+        moves: (el, source, handle, sibling) => el.tagName.toLowerCase() != 'p'
+    }
+    );
+nodesDragula.on('drop', nodesDragulaDrop);
 let gameBoard = document.getElementById('game-board');
 
 // Test game setup
 
+let node1 = createNode(600,400,200,200, gameBoard ,'game-node-1');
+let node2 = createNode(500,900,200,200, gameBoard ,'game-node-2');
+let node3 = createNode(0,1000,200,200, gameBoard ,'game-node-3');
+let node4 = createNode(900,800,200,200, gameBoard ,'game-node-4');
 
-createNode(600,400,200,200, gameBoard ,'game-node-1', nodesDragula);
-createNode(500,900,200,200, gameBoard ,'game-node-2', nodesDragula);
-createNode(0,1000,200,200, gameBoard ,'game-node-3', nodesDragula);
-createNode(900,800,200,200, gameBoard ,'game-node-4', nodesDragula);
+createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-001'}, 'ship-1');
+createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-002'}, 'ship-2');
+createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-003'}, 'ship-3');
+createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-004'}, 'ship-4');
 
 makeNodeConnection(document.getElementById('game-node-1'),document.getElementById('game-node-2'));
 makeNodeConnection(document.getElementById('game-node-1'),document.getElementById('game-node-3'));

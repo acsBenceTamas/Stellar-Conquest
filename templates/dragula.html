@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+{% block head %}
+    <title>Dragula Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.css" />
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js' defer></script>
+    <script src="{{ url_for('static', filename='js/drag.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+    <div style="text-align: center">
+        <div id="left" style="display: inline-table; padding: 20px; border: black 1px solid">
+            <div>ONE</div>
+            <div>TWO</div>
+            <div>THREE</div>
+        </div>
+        <div id="right" style="display: inline-table; padding: 20px; border: black 1px solid">
+            <div>ONE</div>
+            <div>TWO</div>
+            <div>THREE</div>
+        </div>
+    </div>
+{% endblock %}

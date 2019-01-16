@@ -2,12 +2,13 @@
 {% block head %}
     <title>Game</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
     <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js' defer></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
     <script src="{{ url_for('static', filename='js/game.js') }}" defer></script>
 {% endblock %}
 
 {% block content %}
+    <div id="flask-info" data-emblems-folder="{{ emblems }}"></div>
     <nav class="navbar">
         <button id="new-game" class="btn btn-primary">New Game</button>
     </nav>
