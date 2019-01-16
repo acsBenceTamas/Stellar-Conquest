@@ -1,6 +1,6 @@
 .game-node {
     border: black 1px solid;
-    position: relative;
+    position: absolute;
     display: block;
 }
 
