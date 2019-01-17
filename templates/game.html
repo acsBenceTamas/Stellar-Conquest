@@ -9,12 +9,13 @@
 
 {% block content %}
     <div id="flask-info" data-emblems-folder="{{ emblems }}"></div>
-    <nav class="navbar">
-        <button id="new-game" class="btn btn-primary">New Game</button>
+    <nav class="navbar" id="game-nav-bar">
+        <button id="new-game" class="btn btn-primary" onclick="startNewGame()">New Game</button>
+        <button id="new-game" class="btn btn-primary" onclick="endMovePhase()">End Move Phase</button>
     </nav>
+    <div id="game-info"></div>
     <div id="game-board">
 
     </div>
-    <div id="game-info"></div>
     <div id="connection-line-container"></div>
 {% endblock %}

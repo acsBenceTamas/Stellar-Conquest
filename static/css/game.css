@@ -5,10 +5,19 @@
 }
 
 .game-node.selected {
-    border: 3px green double;
+    border: green double;
+}
+
+.game-node.travelled {
+    border-color: blue;
+}
+
+.game-node.travelled.enemy {
+    border-color: orange;
 }
 
 #game-board {
+    padding: 10px;
     border: black 1px dashed;
     width: 800px;
     height: 1600px;
@@ -17,29 +26,51 @@
 
 .connection-line {
     background: black;
+    height: 3px;
 }
 
 .connection-line.selected {
-    background: blue;
+    background: purple;
+    height: 5px;
 }
 
 .connection-line.travelled {
-    background: green;
+    background: blue;
+    height: 5px;
+}
+
+.connection-line.enemy {
+    background: red;
+    height: 5px;
+}
+
+.connection-line.enemy.travelled {
+    background: orange;
+    height: 5px;
 }
 
 .game-ship {
+    margin: 3px;
     border: black 3px solid;
-    display: inline-block;
+    display: inline-table;
+}
+
+.game-ship.selected {
+    border-style: dashed;
+}
+
+.game-ship.selected:not(.enemy):not(.travelled) {
+    border-color: green;
+}
+
+.game-ship.travelled {
+    border-color: blue;
 }
 
 .game-ship.enemy {
     border-color: red;
 }
 
-.game-ship.selected {
-    border: green dashed;
-}
-
-.game-ship.selected.enemy {
-    border: red dashed;
+.game-ship.enemy.travelled {
+    border-color: orange;
 }
