@@ -1,7 +1,11 @@
 .game-node {
-    border: black 1px solid;
+    border: black 3px solid;
     position: absolute;
     display: block;
+}
+
+.game-node.selected {
+    border: 3px green double;
 }
 
 #game-board {
@@ -9,4 +13,33 @@
     width: 800px;
     height: 1600px;
     margin: 50px;
+}
+
+.connection-line {
+    background: black;
+}
+
+.connection-line.selected {
+    background: blue;
+}
+
+.connection-line.travelled {
+    background: green;
+}
+
+.game-ship {
+    border: black 3px solid;
+    display: inline-block;
+}
+
+.game-ship.enemy {
+    border-color: red;
+}
+
+.game-ship.selected {
+    border: green dashed;
+}
+
+.game-ship.selected.enemy {
+    border: red dashed;
 }

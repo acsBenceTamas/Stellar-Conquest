@@ -70,7 +70,7 @@ function getDistance( point1, point2 ) {
     return Math.sqrt(((point2.x-point1.x) * (point2.x-point1.x)) + ((point2.y-point1.y) * (point2.y-point1.y)))
 }
 
-function connectPoints( point1, point2, color, thickness) {
+function connectPoints( point1, point2, thickness) {
     // distance
     let length = getDistance(point1, point2);
     // center
@@ -79,11 +79,11 @@ function connectPoints( point1, point2, color, thickness) {
     // angle
     let angle = Math.atan2((point1.y-point2.y),(point1.x-point2.x))*(180/Math.PI);
     // make hr
-    let htmlLine =
-        `<div class='connection-line' style='
-        padding:0;
+    let connectionLine = document.createElement('div');
+    connectionLine.classList.add('connection-line', 'selectable');
+    connectionLine.style=
+        `padding:0;
         margin:0; height:${thickness}px;
-        background-color:${color};
         line-height:1px;
         position:absolute;
         left:${cx}px;
@@ -93,80 +93,113 @@ function connectPoints( point1, point2, color, thickness) {
         -webkit-transform:rotate(${angle}deg);
         -o-transform:rotate(${angle}deg);
         -ms-transform:rotate(${angle}deg);
-        transform:rotate(${angle}deg);
-        ' />`;
-    document.body.innerHTML += htmlLine;
+        transform:rotate(${angle}deg);`;
+    document.getElementById('connection-line-container').appendChild(connectionLine);
+    return connectionLine
 }
 
 function createNode( posX, posY, width, height, parent, id) {
     let node = document.createElement('div');
-    node.classList.add('game-node');
+    node.classList.add('game-node', 'selectable');
     node.id = id;
     node.style = `left: ${posX-width/2}px; top: ${posY-height}px; height:${height}px; width:${width}px;`;
-    node.innerHTML = `<div class="node-drop-zone"><p>Drop Zone</p></div>`;
+    node.dataset.connections = JSON.stringify([]);
     parent.appendChild(node);
-    nodesDragula.containers.push(node);
+    return node
 }
 
-function makeNodeConnection( node1, node2 ) {
+function makeNodeConnection( node1, node2) {
     let connectionPoints = getClosestConnectionPoints( node1, node2);
-    connectPoints( connectionPoints.point1, connectionPoints.point2, "red", 2)
+    let connectionLine = connectPoints( connectionPoints.point1, connectionPoints.point2, 2);
+    let connections1 = JSON.parse(node1.dataset.connections);
+    let connections2 = JSON.parse(node2.dataset.connections);
+    connections1.push(node2.id);
+    connections2.push(node1.id);
+    node1.dataset.connections = JSON.stringify(connections1);
+    node2.dataset.connections = JSON.stringify(connections2);
+    connectionLine.dataset.nodes = JSON.stringify([node1.id, node2.id]);
+    return connectionLine
 }
 
 function createShip( nodeId, shipConfiguration, shipId) {
-    let ship = document.createElement('div');
-    ship.classList.add('game-ship');
+    let ship = document.createElement('img');
+    ship.classList.add('game-ship', 'selectable');
     ship.id = shipId;
-    ship.style = `border: red 1px solid`;
-    ship.innerHTML = `<img src="${emblemsFolder + shipConfiguration.image}" />${shipConfiguration.name}`;
-    let node = document.getElementById(nodeId);
-    let dropZone = Array.from(node.childNodes).filter(node => node.classList.contains('node-drop-zone'))[0];
-    dropZone.appendChild(ship);
-    removeDropZoneText(dropZone);
+    ship.src = emblemsFolder + shipConfiguration.image;
+    ship.dataset.name = shipConfiguration.name;
+    ship.dataset.owner = shipConfiguration.owner;
+    document.getElementById(nodeId).appendChild(ship);
+    return ship
 }
 
-function nodesDragulaDrop(el, target, source, sibling) {
-    addDropZoneText(source);
-    removeDropZoneText(target);
+function getAllConnectionsForNode( node ) {
+    return Array.from(document.getElementsByClassName('connection-line')).filter(el => JSON.parse(el.dataset.nodes).includes(node.id));
 }
 
-function addDropZoneText(dropZone) {
-    if (Array.from(dropZone.childNodes).length == 0) {
-        dropZone.innerHTML += `<p>Drop Zone</p>`;
+function clickedGameBoardElement( event ) {
+    let target = event.target;
+    for (let selectable of document.getElementsByClassName('selectable')) {
+        selectable.classList.remove('selected');
+    }
+    if ( isGameNode(target) ) {
+        target.classList.add('selected');
+        for (let connectionLine of getAllConnectionsForNode(event.target)){
+            connectionLine.classList.add('selected');
+        }
+    }
+    if ( isFriendlyShip(target) ) {
+        target.classList.add('selected');
+    }
+    if ( isEnemyShip(target) ) {
+        target.classList.add('selected', 'enemy');
     }
 }
 
-function removeDropZoneText(dropZone) {
-    let dropZoneTextList = Array.from(dropZone.childNodes).filter(ship => ship.tagName.toLowerCase() == 'p');
-    if (dropZoneTextList.length > 0){
-        dropZoneTextList[0].remove();
+function startOfTurnCleanUp() {
+    for (let ship of document.getElementsByClassName('game-ship')) {
+        if (isEnemyShip(ship)) {
+            ship.classList.add('enemy');
+        } else {
+            ship.classList.remove('enemy');
+        }
     }
+}
+
+function isGameNode( element ) {
+    return element.classList.contains('game-node');
+}
+
+function isFriendlyShip( element ) {
+    return element.classList.contains('game-ship') && element.dataset.owner == currentPlayer;
+}
+
+function isEnemyShip( element ) {
+    return element.classList.contains('game-ship') && element.dataset.owner != currentPlayer;
 }
 
 
 const emblemsFolder = document.getElementById('flask-info').dataset.emblemsFolder;
-let nodesDragula = dragula(
-    {
-        isContainer: el => el.classList.contains('node-drop-zone'),
-        moves: (el, source, handle, sibling) => el.tagName.toLowerCase() != 'p'
-    }
-    );
-nodesDragula.on('drop', nodesDragulaDrop);
 let gameBoard = document.getElementById('game-board');
+gameBoard.addEventListener('click', clickedGameBoardElement);
+let currentPlayer = 0;
 
 // Test game setup
 
 let node1 = createNode(600,400,200,200, gameBoard ,'game-node-1');
 let node2 = createNode(500,900,200,200, gameBoard ,'game-node-2');
-let node3 = createNode(0,1000,200,200, gameBoard ,'game-node-3');
+let node3 = createNode(300,500,200,200, gameBoard ,'game-node-3');
 let node4 = createNode(900,800,200,200, gameBoard ,'game-node-4');
 
-createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-001'}, 'ship-1');
-createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-002'}, 'ship-2');
-createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-003'}, 'ship-3');
-createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-004'}, 'ship-4');
+createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-001', owner: 0}, 'ship-1');
+createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-002', owner: 0}, 'ship-2');
+createShip( 'game-node-1', {image: 'HULL_Bomber.png', name: 'bomber-003', owner: 0}, 'ship-3');
+createShip( 'game-node-2', {image: 'HULL_Bomber.png', name: 'bomber-004', owner: 1}, 'ship-4');
+createShip( 'game-node-2', {image: 'HULL_Bomber.png', name: 'bomber-005', owner: 1}, 'ship-5');
+createShip( 'game-node-2', {image: 'HULL_Bomber.png', name: 'bomber-006', owner: 1}, 'ship-6');
 
 makeNodeConnection(document.getElementById('game-node-1'),document.getElementById('game-node-2'));
 makeNodeConnection(document.getElementById('game-node-1'),document.getElementById('game-node-3'));
 makeNodeConnection(document.getElementById('game-node-1'),document.getElementById('game-node-4'));
 makeNodeConnection(document.getElementById('game-node-2'),document.getElementById('game-node-4'));
+
+startOfTurnCleanUp();
