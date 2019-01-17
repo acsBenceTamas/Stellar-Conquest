@@ -13,6 +13,10 @@
 }
 
 .game-node.travelled.enemy {
+    border-color: red;
+}
+
+.game-node.conflicted {
     border-color: orange;
 }
 
@@ -39,13 +43,23 @@
     height: 5px;
 }
 
-.connection-line.enemy {
+.connection-line.enemy.travelled {
     background: red;
     height: 5px;
 }
 
-.connection-line.enemy.travelled {
+.connection-line.selected.conflicted {
     background: orange;
+    height: 5px;
+}
+
+.connection-line.selected.enemy {
+    background: red;
+    height: 5px;
+}
+
+.connection-line.selected.travelled {
+    background: blue;
     height: 5px;
 }
 

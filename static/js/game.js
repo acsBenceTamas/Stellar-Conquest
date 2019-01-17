@@ -132,10 +132,6 @@ function createShip( nodeId, shipConfiguration, shipId) {
     return ship
 }
 
-function getAllConnectionsForNode( node ) {
-    return Array.from(document.getElementsByClassName('connection-line')).filter(el => JSON.parse(el.dataset.nodes).includes(node.id));
-}
-
 function clickUpdate() {
     for (let selectable of document.getElementsByClassName('selectable')) {
         selectable.classList.remove('selected');
@@ -160,6 +156,29 @@ function countFriendlyShipsWithoutOrder() {
     return Array.from(document.getElementsByClassName('game-ship')).filter(
         ship => ship.dataset.owner == currentPlayer && !ship.classList.contains('travelled') && ship.dataset.type != "station"
     ).length
+}
+
+function countFriendlyShipsWithoutOrderOnNode( node ) {
+    return Array.from(document.getElementsByClassName('game-ship')).filter(
+        ship => ship.dataset.owner == currentPlayer && !ship.classList.contains('travelled') &&
+            ship.dataset.type != "station" && ship.parentNode.id == node.id
+    ).length
+}
+
+function countEnemiesInvadingFromNode( sourceNode, targetNode ) {
+    return Array.from(document.getElementsByClassName('game-ship')).filter(
+        ship => ship.dataset.owner != currentPlayer &&
+            ship.parentNode.id == sourceNode.id && ship.dataset.moveTarget == targetNode.id
+    ).length
+}
+
+function checkInvasionRules( sourceNode, targetNode ) {
+    if (countEnemiesInvadingFromNode(targetNode, sourceNode) < countFriendlyShipsWithoutOrderOnNode(sourceNode)) {
+        return true
+    } else {
+        alert("Number of attacking ships from selected node exceeds defending ships in the current node.")
+        return false
+    }
 }
 
 function clickedGameBoardElement( event ) {
@@ -204,7 +223,8 @@ function canMoveTo( ship, targetNode ) {
             let nodes = JSON.parse(line.dataset.nodes);
             return nodes.includes(ship.parentNode.id) && nodes.includes(targetNode.id)
         }
-    ).length > 0);
+     ).length > 0
+     && checkInvasionRules( ship.parentNode, targetNode));
 }
 
 function issueMoveOrder( ship, targetNode ) {
@@ -217,10 +237,55 @@ function cancelMoveOrder( ship ) {
     ship.classList.remove('travelled');
 }
 
+function getAllConnectionsForNode( node ) {
+    return Array.from(document.getElementsByClassName('connection-line')).filter(el => JSON.parse(el.dataset.nodes).includes(node.id));
+}
+
+function getAllNodesAttackingNodeWithAttackers( node ) {
+    let attackingNodes = Array.from(document.getElementsByClassName('game-node')).filter(sourceNode => {
+        for (let ship of sourceNode.getElementsByClassName('game-ship')) {
+            if (ship.dataset.moveTarget == node.id) {
+                return true
+            }
+        }
+        return false
+    });
+    let detailedAttacks = [];
+    for (let attackingNode of attackingNodes) {
+        let enemy = false;
+        let ally = false;
+        for (let ship of Array.from(attackingNode.getElementsByClassName('game-ship')).filter(ship => ship.dataset.moveTarget == node.id)) {
+            if (ship.dataset.owner == currentPlayer) {
+                ally = true;
+            } else {
+                enemy = true;
+            }
+        }
+        let attackType;
+        if (enemy && ally) {attackType = "both"} else if (enemy) {attackType = "enemy"} else {attackType = "ally"}
+        detailedAttacks.push({attackingNode: attackingNode, attackType: attackType})
+    }
+    return detailedAttacks
+}
+
 function selectNode( node ) {
     node.classList.add('selected');
+    attackingNodes = getAllNodesAttackingNodeWithAttackers(node);
     for (let connectionLine of getAllConnectionsForNode(node)){
         connectionLine.classList.add('selected');
+        for (let attack of attackingNodes.filter(
+            attack => JSON.parse(connectionLine.dataset.nodes).includes(attack.attackingNode.id))) {
+            switch (attack.attackType) {
+                case "both":
+                    connectionLine.classList.add('conflicted');
+                    break;
+                case "enemy":
+                    connectionLine.classList.add('enemy');
+                    break;
+                case "ally":
+                    connectionLine.classList.add('travelled');
+            }
+        }
     }
 }
 
