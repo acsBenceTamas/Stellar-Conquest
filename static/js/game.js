@@ -152,6 +152,18 @@ function countFriendlyShips() {
     ).length
 }
 
+function countFriendlyShipsOnNode( node ) {
+    return Array.from(node.getElementsByClassName('game-ship')).filter(
+        ship => ship.dataset.owner == currentPlayer
+    ).length
+}
+
+function countEnemyShipsOnNode(node) {
+    return Array.from(node.getElementsByClassName('game-ship')).filter(
+        ship => ship.dataset.owner != currentPlayer
+    ).length
+}
+
 function countFriendlyShipsWithoutOrder() {
     return Array.from(document.getElementsByClassName('game-ship')).filter(
         ship => ship.dataset.owner == currentPlayer && !ship.classList.contains('travelled') && ship.dataset.type != "station"
@@ -173,7 +185,8 @@ function countEnemiesInvadingFromNode( sourceNode, targetNode ) {
 }
 
 function checkInvasionRules( sourceNode, targetNode ) {
-    if (countEnemiesInvadingFromNode(targetNode, sourceNode) < countFriendlyShipsWithoutOrderOnNode(sourceNode)) {
+    const enemiesInvadingFromNode = countEnemiesInvadingFromNode(targetNode, sourceNode);
+    if ( enemiesInvadingFromNode == 0 || enemiesInvadingFromNode < countFriendlyShipsWithoutOrderOnNode(sourceNode)) {
         return true
     } else {
         alert("Number of attacking ships from selected node exceeds defending ships in the current node.")
@@ -182,9 +195,13 @@ function checkInvasionRules( sourceNode, targetNode ) {
 }
 
 function clickedGameBoardElement( event ) {
-    let clickTarget = event.target;
     clickUpdate();
-    if ( isShip(clickTarget) ) {
+    let clickTarget = event.target;
+    console.log(event.currentTarget.id);
+    if ( clickTarget == event.currentTarget) {
+        selectGameBoard();
+        deselectShip()
+    } else if ( isShip(clickTarget) ) {
         if (currentShip == clickTarget) {
             deselectShip()
         } else {
@@ -268,6 +285,11 @@ function getAllNodesAttackingNodeWithAttackers( node ) {
     return detailedAttacks
 }
 
+function selectGameBoard() {
+    document.getElementById("info-items").innerHTML =
+    `<tr><th class="info-name">Selected:</th><td class="info-value">NONE</td></tr>`;
+}
+
 function selectNode( node ) {
     node.classList.add('selected');
     attackingNodes = getAllNodesAttackingNodeWithAttackers(node);
@@ -287,6 +309,11 @@ function selectNode( node ) {
             }
         }
     }
+    document.getElementById("info-items").innerHTML = `
+        <tr><th class="info-name">Selected:</th><td class="info-value">${node.id}</td></tr>
+        <tr><th class="info-name">Friendly Ships:</th><td class="info-value">${countFriendlyShipsOnNode(node)}</td></tr>
+        <tr><th class="info-name">Enemy Ships:</th><td class="info-value">${countEnemyShipsOnNode(node)}</td></tr>
+    `;
 }
 
 function selectShip( ship ) {

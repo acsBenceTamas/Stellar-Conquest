@@ -12,8 +12,17 @@
     <nav class="navbar" id="game-nav-bar">
         <button id="new-game" class="btn btn-primary" onclick="startNewGame()">New Game</button>
         <button id="new-game" class="btn btn-primary" onclick="endMovePhase()">End Move Phase</button>
+        <div id="selection-info">
+            <h1>Selection info</h1>
+            <table id="info-items">
+                <tr>
+                    <th class="info-name">Selected:</th><td class="info-value">DEFAULT</td>
+                </tr>
+            </table>
+        </div>
     </nav>
     <div id="game-info"></div>
+
     <div id="game-board">
 
     </div>
